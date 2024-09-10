@@ -2,11 +2,44 @@ import { Router } from "express";
 import { getMarkdowns, createMarkdown, createUser, login } from "./prisma.js";
 import marktoHTML from "./md_to_html.js";
 import multer from "multer";
+import axios from "axios"
 import { createToken } from "./authentication.js";
-
-const upload = multer({dest:"/filecontainer"});
+import dotenv from "dotenv"
+dotenv.config();
+const storage =multer.memoryStorage()
+const upload = multer({storage});
 const router = Router();
 const userRouter = Router();
+
+
+
+
+async function checkGrammar(text) {
+  try {
+    const response = await axios.post('https://grammarbot.p.rapidapi.com/check',
+      // Send text in the request body
+      new URLSearchParams({
+        text,
+        language: 'en-US'
+      }).toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          "x-rapidapi-key":process.env.API
+        }
+      }
+    );
+    console.log(response)
+    return response.data;
+  } catch (error) {
+    console.log(error)
+    console.error('Error checking grammar:', error.response ? error.response.data : error.message);
+    return null;
+  }
+}
+
+
+
 
 router.post("/savenote", upload.single("file"), async (req, res) => {
   const markdownData = { content: req.file.buffer.toString() };
@@ -26,23 +59,27 @@ router.get("/savednotes", async (req, res) => {
     res.status(400).json("do not have any notes to show");
   }
 });
-router.get("/grammercheck", (req, res) => {
-  res.send("<h1>grammer check</h1>")
+router.post("/grammercheck", async (req, res) => {
+const response =await checkGrammar(req.body);
+if(response){
+  res.status(201).json(response);
+}
+else{
+  res.status(400).json("failed to check grammer")
+}
+
 });
 
 router.get("/note", async (req, res) => {
-  try{
-  const markdown = await getMarkdowns(req.user);
-  const html = await marktoHTML(markdown[0].content);
+  const markdown = await getMarkdowns(req.user.id);
+  const fileId = req.query.id;
+  const file = markdown.find((file) => file.id == fileId);
+  const html = await marktoHTML(file?file.content:markdown[0].content);
   if (html) {
     res.status(201).send(html);
   } else {
     res.status(400).send({ message: "could not get markdown" });
   }
-}
-catch(error){
-  console.error("Error is :",error)
-}
 });
 
 userRouter.post("/createUser", (req, res) => {

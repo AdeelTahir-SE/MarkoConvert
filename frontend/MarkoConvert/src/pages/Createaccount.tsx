@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 export default function CreateAccount() {
   
     const navigate =useNavigate();
-    async function formhandler(){
+    async function formhandler(e:any){
+    e.preventDefault(); // Prevent the default form submission behavior
         const email = (document.getElementById("email") as HTMLInputElement).value;
         const password = (document.getElementById("password") as HTMLInputElement).value;
         const response =await fetch("http://localhost:3000/api/user/createUser",{

@@ -21,7 +21,8 @@ export async function createMarkdown(markdown,id){
     });
 }
 
-export async function getMarkdowns(id){
+export async function getMarkdowns(Id){
+const {id} =Id;
     return await prisma.markdown.findMany({
         where:{
             userId:id
@@ -29,12 +30,13 @@ export async function getMarkdowns(id){
     });
 }
 export async function getUserByEmail(email){
-    console.log(email)
-    return await prisma.user.findUnique({
+const res=  await prisma.user.findUnique({
         where:{
             email:email
         }
     });
+    console.log(res)
+    return res;
 }
 
 export async function login(user){

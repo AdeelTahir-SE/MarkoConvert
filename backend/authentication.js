@@ -6,13 +6,13 @@ dotenv.config();
 
 export async function Protected(req,res,next) {
   const [,token] = (req.headers.authorization).split(" "); // 'authorization' should be lowercase in Express
-  
   console.log(token)
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
   }
   try {
     const user = verifyToken(token);
+    console.log(user)
     const User = await getUserByEmail(user.user);
     console.log(User)
     req.user = { id: User.id };
