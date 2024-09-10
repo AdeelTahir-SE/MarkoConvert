@@ -1,11 +1,14 @@
 import remarkHtml from 'remark-html'
 import remarkParse from 'remark-parse'
-import {read} from 'to-vfile'
 import {unified} from 'unified'
 
+export default async function marktoHTML(data){
 const file = await unified()
   .use(remarkParse)
   .use(remarkHtml)
-  .process(await read('readme.md'))
+  .process(data)
 
-console.log(typeof file)
+  return file.toString();
+}
+
+
